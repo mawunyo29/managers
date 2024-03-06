@@ -8,6 +8,7 @@ export default defineNuxtConfig({
       // Will be only available on the server-side
       secretKey: process.env.SECRET_KEY,
       apiURL: process.env.API_URL,
+      appKey: process.env.APP_KEY,
     }
   },
   ssr: false,
@@ -29,12 +30,18 @@ export default defineNuxtConfig({
   components:[
     { path: '~/components', pathPrefix:false},
   ],
-  
+  plugins: [
+    
+    { src: '~/plugins/pages/rename', mode: 'client' },
+  ],
+ 
+ 
   modules: [
     "@element-plus/nuxt",
     "@pinia/nuxt",
     "@vueuse/nuxt",
     "@nuxt/ui",
     "nuxt-laravel-precognition",
+    
   ]
 })

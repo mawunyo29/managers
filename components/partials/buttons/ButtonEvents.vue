@@ -1,7 +1,7 @@
 <template>
     <TransitionRoot as="div" :show="isOpen" class="absolute top-16  right-0  sm:right-3">
-        <TransitionChild   enter="transition ease-in-out duration-300 transform" enter-from="translate-x-full origin-right"
-      enter-to="translate-x-0" leave="transition ease-in-out duration-300 transform" leave-from="translate-x-0"
+        <TransitionChild   enter=" ease-in-out  transition-transform" enter-from="translate-x-full origin-right"
+      enter-to="translate-x-0" leave="transition ease-in-out  transition-transform" leave-from="translate-x-0"
       leave-to="translate-x-full">
            <slot></slot>
         </TransitionChild>

@@ -2,7 +2,7 @@
 definePageMeta({
   title: "500",
   name: "500",
-  alias: "/errors/500",
+  alias: "/errors/external/500",
   layout: "guest",
 
 });

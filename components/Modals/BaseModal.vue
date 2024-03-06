@@ -1,15 +1,15 @@
 <template>
-    <div class="fixed left-0 right-0 z-50 items-center justify-center hidden overflow-x-hidden overflow-y-auto top-4 md:inset-0 h-modal sm:h-full"
-       >
-        <div class="relative w-full h-full max-w-2xl px-4 md:h-auto">
+    <div class="fixed left-0 right-0 z-50 items-center justify-center bg-slate-600/60 flex  overflow-x-hidden overflow-y-auto top-4 md:inset-0 h-modal sm:h-full transition-transform "
+        :class="{ '-translate-x-full': !isOpen, 'translate-x-0': isOpen }" data-modal="modal" ref="modal">
+        <div class="relative w-full h-full max-w-2xl px-4 md:h-auto ">
             <!-- Modal content -->
             <div class="relative bg-white rounded-lg shadow dark:bg-gray-800">
                 <!-- Modal header -->
                 <div class="flex items-start justify-between p-5 border-b rounded-t dark:border-gray-700">
                     <h3 class="text-xl font-semibold dark:text-white">
-                        {{title}}
+                        {{ title }}
                     </h3>
-                    <button type="button"
+                    <button type="button" @click="close()"
                         class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-700 dark:hover:text-white"
                         data-modal-toggle="add-user-modal">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -76,15 +76,58 @@
 </template>
 
 <script setup>
-
+const emit = defineEmits(['update:close'])
 const props = defineProps({
-  title: {
-    type: String,
-    required: true
-  },
-
+    title: {
+        type: String,
+        required: true
+    },
+    isOpen: {
+        type: Boolean,
+        default: false
+    },
+    buttonEvent: {
+        type: Object,
+        default: () => { }
+    }
 })
+const modal = ref({})
+const notListen = ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON']
+const clickOutsideModal = (e) => {
+    //check if the element is input or button
+    if (notListen.includes(e.target.tagName)) {
+        return;
+    }
+    e.preventDefault();
+    if (isOpen.value && buttonEvent.value && !buttonEvent.value.contains(e.target) && e.target) {
+        console.log('click outside modal', buttonEvent.value);
+        emit('update:close')
+    }
+};
 const title = computed(() => props.title)
+const isOpen = computed(() => props.isOpen)
+const buttonEvent = computed(() => props.buttonEvent)
+
+const close = () => {
+    emit('update:close')
+}
+onMounted(() => {
+    if (isOpen.value) {
+        window.addEventListener('click', clickOutsideModal);
+    }
+});
+watch(() => isOpen.value, (newValue, oldValue) => {
+    console.log('watch', newValue, oldValue);
+    if (newValue) {
+        window.addEventListener('click', clickOutsideModal);
+    } else {
+        window.removeEventListener('click', clickOutsideModal);
+    }
+});
+onUnmounted(() => {
+    window.removeEventListener('click', clickOutsideModal);
+});
+
 </script>
 
 <style scoped>

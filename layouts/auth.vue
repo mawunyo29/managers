@@ -4,6 +4,7 @@ const dropdownCrud = ref(null)
 const isDropdownCrud = ref(false)
 const openContent = ref(null)
 const layoutDrop = ref(null)
+const auth = useAuthStore()
 const layouts = ref([
   { name: 'Stacked', link: '/admin/sidebar' },
   { name: 'Sidebar', link: '#' }
@@ -121,6 +122,9 @@ const toggleSideMenu = (e) => {
   // }
 }
 watchEffect(() => {
+
+})
+onMounted(() => {
   sideNav.value = document.querySelectorAll('.open')
   sideNav.value.forEach((item) => {
 
@@ -231,7 +235,7 @@ watchEffect(() => {
                     @leave="leave" id="dropdown-layouts"
                     class="py-2 space-y-2 overflow-hidden transition open-container max-h-0">
                 <li v-for="(layout, index) in layouts" :data-index="index" :key="layout.name"
-                  class=" flex items-center p-2 text-base text-gray-900 transition duration-500 rounded-lg pl-11 group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
+                  class=" flex items-center p-2 first:mt-2 text-base text-gray-900 transition duration-500 rounded-lg pl-11 group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
                   <!-- <a :href="layout.link">{{ layout.name }}</a> -->
                   <NuxtLink :to="layout.link" class="flex items-start">{{ layout.name }}</NuxtLink>
                 </li>
@@ -262,8 +266,9 @@ watchEffect(() => {
                     @before-leave="beforeLeave" @leave="leave"
                     class="py-2 space-y-2 overflow-hidden transition open-container max-h-0">
                 <li v-for="(crud, index) in cruds" :data-index="index" :key="crud.name"
-                  class="flex items-center p-2 text-base text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
-                  <a :href="crud.link">{{ crud.name }}</a>
+                  class="flex items-center p-2 first:mt-2 text-base text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
+
+                  <NuxtLink :to="crud.link" class="flex-grow items-start ">{{ crud.name }}</NuxtLink>
                 </li>
                 </TransitionGroup>
                 </li>
@@ -279,6 +284,19 @@ watchEffect(() => {
                       </path>
                     </svg>
                     <span class="ml-3" sidebar-toggle-item>Settings</span>
+                  </NuxtLink>
+
+                </li>
+                <li>
+                  <NuxtLink :to="`/auth/users/${auth.user?.user?.name}/badging`"
+                    class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700  bg-gray-100 dark:bg-gray-700 ">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" viewBox="0 0 256 256">
+                      <rect width="256" height="256" fill="none" />
+                      <path fill="currentColor"
+                        d="M146.7 166.75a36 36 0 1 0-37.4 0a63.61 63.61 0 0 0-32.5 22.85a4 4 0 0 0 6.4 4.8a56 56 0 0 1 89.6 0a4 4 0 0 0 6.4-4.8a63.65 63.65 0 0 0-32.5-22.85M100 136a28 28 0 1 1 28 28a28 28 0 0 1-28-28M200 28H56a12 12 0 0 0-12 12v176a12 12 0 0 0 12 12h144a12 12 0 0 0 12-12V40a12 12 0 0 0-12-12m4 188a4 4 0 0 1-4 4H56a4 4 0 0 1-4-4V40a4 4 0 0 1 4-4h144a4 4 0 0 1 4 4ZM92 64a4 4 0 0 1 4-4h64a4 4 0 0 1 0 8H96a4 4 0 0 1-4-4" />
+                    </svg>
+                    <span class="ml-3" sidebar-toggle-item>Badge</span>
                   </NuxtLink>
 
                 </li>
@@ -306,7 +324,7 @@ watchEffect(() => {
                     id="dropdown-pages">
                 <li v-for="(page, index ) in dropDownPages" :data-index="index" :key="page.name">
                   <a href="#"
-                    class="flex items-center p-2 text-base text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">{{
+                    class="flex items-center p-2 first:mt-2 text-base text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">{{
                       page.name }}</a>
                 </li>
                 </TransitionGroup>
@@ -335,7 +353,7 @@ watchEffect(() => {
                     id="dropdown-auth">
                 <li v-for="(auth, index) in dropdownAuths" :data-index="index" :key="auth.name">
                   <a href="#"
-                    class="flex items-center p-2 text-base text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">{{
+                    class="flex items-center first:mt-2 p-2 text-base text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">{{
                       auth.name }}</a>
                 </li>
                 </TransitionGroup>
@@ -364,7 +382,8 @@ watchEffect(() => {
                     id="dropdown-playground">
                 <li v-for="(playground, index) in playgrounds" :data-index="index" :key="playground.name">
                   <a href="#"
-                    class="text-base text-gray-900 rounded-lg flex items-center p-2 group  hover:bg-gray-100 transition duration-75 pl-11 dark:text-gray-200 dark:hover:bg-gray-700  bg-gray-100 dark:bg-gray-700 first:mt-2 ">{{ playground.name }}</a>
+                    class="text-base text-gray-900 rounded-lg  flex items-center p-2 group  hover:bg-gray-100 transition duration-75 pl-11 dark:text-gray-200 dark:hover:bg-gray-700  bg-gray-100 dark:bg-gray-700 first:mt-2 ">{{
+                      playground.name }}</a>
                 </li>
                 </TransitionGroup>
                 </li>
@@ -394,7 +413,7 @@ watchEffect(() => {
                   <span class="ml-3" sidebar-toggle-item>Flowbite Docs</span>
                 </a>
                 <a href="https://flowbite.com/docs/components/alerts/" target="_blank"
-                  class="flex items-center p-2 text-base text-gray-900 transition duration-75 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
+                  class="flex items-center p-2 first:mt-2 text-base text-gray-900 transition duration-75 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
                   <svg
                     class="flex-shrink-0 w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
                     fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">

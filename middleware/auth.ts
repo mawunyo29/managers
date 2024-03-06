@@ -6,5 +6,5 @@ export default defineNuxtRouteMiddleware((to, from) => {
         console.log('no token');
         return navigateTo('/') 
     }
-    
+
 })

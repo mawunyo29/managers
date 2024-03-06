@@ -1,13 +1,78 @@
-<script lang="ts" setup>
+<script  setup>
+import CryptoJS from "crypto-js";
+
 definePageMeta({
   title: "Pages",
-  auth: true,
   name: "pages-list",
   layout: "auth",
   alias: "/admin/crud/pages",
   middleware: ["auth"],
   loading: true
 });
+const icons = ref({
+  edit: "lucide:edit",
+  delete: "lucide:trash",
+  dashboard: "mdi-light:view-dashboard",
+  users: "lucide:users",
+  settings: "lucide:settings",
+  logout: "mdi-light:logout",
+  login: "mdi-light:login",
+  home: "lucide:home",
+  menu: "lucide:menu",
+  pages: "mdi-light:note-text",
+  products: "mdi-light:folder-multiple",
+  orders: "mdi-light:cart",
+  customers: "mdi-light:format-align-right",
+
+});
+const menus = ref([]);
+const form = ref({});
+const isOpen = ref({ drawerCreateProduct: false, drawerUpdateProduct: false, drawerDeleteProduct: false, openAddMenu: false });
+const appConfig = useRuntimeConfig().public
+const openDrawer = (name) => {
+  name === name ? name : -1;
+  isOpen.value[name] = !isOpen.value[name];
+
+};
+const isMenuButtonOpen = ref({});
+const allRoutes = useRouter().getRoutes();
+
+// not dupplicate route name
+const routes = allRoutes.filter((route, index, self) =>
+  index === self.findIndex((t) => t.name === route.name)
+);
+
+
+const addMenu = async () => {
+  const { data, error } = await useApiFetch("/api/menus", {
+    method: "POST",
+    body: form.value,
+  });
+  if (data) {
+    await getMenus();
+  }
+};
+
+const getMenus = async () => {
+  const { data, error } = await useApiFetch("/api/menus");
+  if (data) {
+    console.log(data.value);
+    const appKey = appConfig.appKey;
+    try {
+      
+      menus.value = data.value;
+
+    } catch (error) {
+      console.error("Erreur lors du décryptage des données :", error);
+    }
+  }
+};
+
+
+onMounted(async () => {
+  await getMenus();
+});
+
 </script>
 <template>
   <div class="p-4 w-full">
@@ -60,7 +125,7 @@ definePageMeta({
             <form class="sm:pr-3" action="#" method="GET">
               <label for="Pages-search" class="sr-only">Search</label>
               <div class="relative w-48 mt-1 sm:w-64 xl:w-96">
-                <input type="text" name="email" id="Pages-search"
+                <input type="text" name="Icon" id="Pages-search"
                   class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                   placeholder="Search for Pages">
               </div>
@@ -102,17 +167,27 @@ definePageMeta({
               </div>
             </div>
           </div>
-          <button id="createProductButton"
-            class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800"
-            type="button" data-drawer-target="drawer-create-product-default"
-            data-drawer-show="drawer-create-product-default" aria-controls="drawer-create-product-default"
-            data-drawer-placement="right">
-            Add new product
-          </button>
+          <div class="flex items-center space-x-4">
+            <button ref="isMenuButtonOpen" @click="openDrawer('openAddMenu')"
+              class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800"
+              type="button" data-drawer-target="drawer-create-product-default"
+              data-drawer-show="drawer-create-product-default" aria-controls="drawer-create-product-default"
+              data-drawer-placement="right">
+              Add new Menu
+            </button>
+            <button id="createProductButton" @click="openDrawer('drawerCreateProduct')"
+              class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800"
+              type="button" data-drawer-target="drawer-create-product-default"
+              data-drawer-show="drawer-create-product-default" aria-controls="drawer-create-product-default"
+              data-drawer-placement="right">
+              Add new product
+            </button>
+          </div>
         </div>
       </div>
     </div>
-    <div class="flex flex-col">
+
+    <div class="flex flex-col" v-if="menus.length > 0">
       <div class="overflow-x-auto">
         <div class="inline-block min-w-full align-middle">
           <div class="overflow-hidden shadow">
@@ -130,7 +205,7 @@ definePageMeta({
                     ID
                   </th>
                   <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                   Page Name
+                    Page Name
                   </th>
                   <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
                     URL
@@ -155,7 +230,7 @@ definePageMeta({
               <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
                 <!-- {{< Pages.inline >}}
                         {{- range (index $.Site.Data "Pages") }} -->
-                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700" v-for="(menu, index) in menus" :key="menu.id">
                   <td class="w-4 p-4">
                     <div class="flex items-center">
                       <input id="checkbox-{{ .id }}" aria-describedby="checkbox-1" type="checkbox"
@@ -163,23 +238,25 @@ definePageMeta({
                       <label for="checkbox-{{ .id }}" class="sr-only">checkbox</label>
                     </div>
                   </td>
-                  <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white"></td>
+                  <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ menu.id }}</td>
                   <td class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
-                    <div class="text-base font-semibold text-gray-900 dark:text-white"></div>
-                    <div class="text-sm font-normal text-gray-500 dark:text-gray-400"></div>
+                    <div class="text-base font-semibold text-gray-900 dark:text-white">{{ menu.name }}</div>
+                    <div class="text-sm font-normal text-gray-500 dark:text-gray-400">{{ menu?.url }}</div>
                   </td>
-                  <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white"></td>
+                  <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ menu?.url }}
+                  </td>
                   <td
                     class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
-                  </td>
+                    {{ menu.is_active ? "Active" : "Inactive" }}</td>
+
                   <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white"></td>
                   <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white"></td>
                   <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white"></td>
 
                   <td class="p-4 space-x-2 whitespace-nowrap">
                     <button type="button" id="updateProductButton" data-drawer-target="drawer-update-product-default"
-                      data-drawer-show="drawer-update-product-default" aria-controls="drawer-update-product-default"
-                      data-drawer-placement="right"
+                      @click="openDrawer('drawerUpdateProduct')" data-drawer-show="drawer-update-product-default"
+                      aria-controls="drawer-update-product-default" data-drawer-placement="right"
                       class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
                       <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"
                         xmlns="http://www.w3.org/2000/svg">
@@ -191,8 +268,8 @@ definePageMeta({
                       Update
                     </button>
                     <button type="button" id="deleteProductButton" data-drawer-target="drawer-delete-product-default"
-                      data-drawer-show="drawer-delete-product-default" aria-controls="drawer-delete-product-default"
-                      data-drawer-placement="right"
+                      @click="openDrawer('drawerDeleteProduct')" data-drawer-show="drawer-delete-product-default"
+                      aria-controls="drawer-delete-product-default" data-drawer-placement="right"
                       class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-red-700 rounded-lg hover:bg-red-800 focus:ring-4 focus:ring-red-300 dark:focus:ring-red-900">
                       <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"
                         xmlns="http://www.w3.org/2000/svg">
@@ -213,7 +290,7 @@ definePageMeta({
       </div>
     </div>
 
-    <div
+    <div v-if="menus.length > 0"
       class="sticky bottom-0 right-0 items-center w-full p-4 bg-white border-t border-gray-200 sm:flex sm:justify-between dark:bg-gray-800 dark:border-gray-700">
       <div class="flex items-center mb-4 sm:mb-0">
         <a href="#"
@@ -259,13 +336,14 @@ definePageMeta({
     </div>
 
     <!-- Edit Product Drawer -->
-    <div id="drawer-update-product-default"
-      class="fixed top-0 right-0 z-40 w-full h-screen max-w-xs p-4 overflow-y-auto transition-transform translate-x-full bg-white dark:bg-gray-800"
+    <div id="drawer-update-product-default" data-drawer="drawer-update-product-default"
+      class="fixed top-0 right-0 z-40 w-full h-screen max-w-xs p-4 overflow-y-auto transition-transform  bg-white dark:bg-gray-800"
+      :class="{ 'translate-x-0': isOpen.drawerUpdateProduct, 'translate-x-full': !isOpen.drawerUpdateProduct }"
       tabindex="-1" aria-labelledby="drawer-label" aria-hidden="true">
       <h5 id="drawer-label"
         class="inline-flex items-center mb-6 text-sm font-semibold text-gray-500 uppercase dark:text-gray-400">Update
         Product</h5>
-      <button type="button" data-drawer-dismiss="drawer-update-product-default"
+      <button type="button" data-drawer-dismiss="drawer-update-product-default" @click="openDrawer('drawerUpdateProduct')"
         aria-controls="drawer-update-product-default"
         class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 right-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white">
         <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
@@ -282,7 +360,7 @@ definePageMeta({
             <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
             <input type="text" name="title" id="name"
               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-              value="Education Dashboard" placeholder="Type product name" required="">
+              value="Education Dashboard" placeholder="Type product name" required>
           </div>
           <div>
             <label for="category" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Technology</label>
@@ -343,11 +421,12 @@ definePageMeta({
 
     <!-- Delete Product Drawer -->
     <div id="drawer-delete-product-default"
-      class="fixed top-0 right-0 z-40 w-full h-screen max-w-xs p-4 overflow-y-auto transition-transform translate-x-full bg-white dark:bg-gray-800"
+      class="fixed top-0 right-0 z-40 w-full h-screen max-w-xs p-4 overflow-y-auto transition-transform  bg-white dark:bg-gray-800"
+      :class="{ 'translate-x-0': isOpen.drawerDeleteProduct, 'translate-x-full': !isOpen.drawerDeleteProduct }"
       tabindex="-1" aria-labelledby="drawer-label" aria-hidden="true">
       <h5 id="drawer-label"
         class="inline-flex items-center text-sm font-semibold text-gray-500 uppercase dark:text-gray-400">Delete item</h5>
-      <button type="button" data-drawer-dismiss="drawer-delete-product-default"
+      <button type="button" data-drawer-dismiss="drawer-delete-product-default" @click="openDrawer('drawerDeleteProduct')"
         aria-controls="drawer-delete-product-default"
         class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 right-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white">
         <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
@@ -378,12 +457,13 @@ definePageMeta({
 
     <!-- Add Product Drawer -->
     <div id="drawer-create-product-default"
-      class="fixed top-0 right-0 z-40 w-full h-screen max-w-xs p-4 overflow-y-auto transition-transform translate-x-full bg-white dark:bg-gray-800"
+      class="fixed top-0 right-0 z-40 w-full h-screen max-w-xs p-4 overflow-y-auto transition-transform  bg-white dark:bg-gray-800"
+      :class="{ 'translate-x-0': isOpen.drawerCreateProduct, 'translate-x-full': !isOpen.drawerCreateProduct }"
       tabindex="-1" aria-labelledby="drawer-label" aria-hidden="true">
       <h5 id="drawer-label"
         class="inline-flex items-center mb-6 text-sm font-semibold text-gray-500 uppercase dark:text-gray-400">New Product
       </h5>
-      <button type="button" data-drawer-dismiss="drawer-create-product-default"
+      <button type="button" data-drawer-dismiss="drawer-create-product-default" @click="openDrawer('drawerCreateProduct')"
         aria-controls="drawer-create-product-default"
         class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 right-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white">
         <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
@@ -415,10 +495,9 @@ definePageMeta({
             <select id="category-create"
               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
               <option>Select category</option>
-              <option value="FL">Flowbite</option>
-              <option value="RE">React</option>
-              <option value="AN">Angular</option>
-              <option value="VU">Vue</option>
+              <template v-for="route in routes" :key="route.name">
+                <option :value="route.path">{{ route.name }}</option>
+              </template>
             </select>
           </div>
           <div>
@@ -460,6 +539,71 @@ definePageMeta({
         </div>
       </form>
     </div>
+    <!-- Add Menu -->
+
+
+    <base-modal :isOpen="isOpen.openAddMenu" @update:close="openDrawer('openAddMenu')" title="Add Menus"
+      :buttonEvent="isMenuButtonOpen">
+      <form @submit.prevent="addMenu()" class="shadow">
+        <div class="p-6 space-y-6">
+          <div class="grid grid-cols-6 gap-6">
+            <div class="col-span-6 sm:col-span-3">
+              <label for="menu-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Label</label>
+              <input type="text" id="menu-name" v-model="form.name"
+                class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                placeholder="Dashboard" required>
+            </div>
+            <!-- <div class="col-span-6 sm:col-span-3">
+              <label for="url" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Url</label>
+              <input type="text" name="url" id="url" v-model="form.url"
+                class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                placeholder="Menu url exp: /dashbord" required>
+            </div> -->
+            <div class="col-span-6 sm:col-span-3">
+              <label for="url" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Url</label>
+              <select id="url" v-model="form.url"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                <option value="">Select category</option>
+                <template v-for="route in routes" :key="route.name">
+                  <option :value="route.path">{{ route.name }}</option>
+                </template>
+              </select>
+            </div>
+            <div class="col-span-6 sm:col-span-3">
+              <label for="Icon" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Icon</label>
+              <select id="Icon" v-model="form.icon"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                <option>Select Icon</option>
+                <template v-for="icon in icons" :key="icon">
+                  <option :value="icon">{{ icon }} </option>
+                  
+                </template>
+              </select>
+            </div>
+            <div class="col-span-6 sm:col-span-3">
+              <label for="position" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Position</label>
+              <input type="number" id="position" v-model="form.position"
+                class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                placeholder="e.g. React developer">
+            </div>
+            <!-- <div class="col-span-6">
+              <label for="biography"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Biography</label>
+              <textarea id="biography" rows="4"
+                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                placeholder="👨‍💻Full-stack web developer. Open-source contributor."></textarea>
+            </div> -->
+          </div>
+        </div>
+        <!-- Modal footer -->
+        <div class="items-center p-6 border-t border-gray-200 rounded-b dark:border-gray-700">
+          <button
+            class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+            type="submit">Add user</button>
+        </div>
+      </form>
+    </base-modal>
+
   </div>
 </template>
 
