@@ -3,14 +3,12 @@ definePageMeta({
   title: "Dashboard",
   auth: true,
   name: "Dashboard",
-  layout: "auth",
   alias: "/dashboard",
   middleware: ["auth"],
+  layout: "auth",
   loading: true
 });
-const auth = useAuthStore();
-const currentUser = auth.user as any;
-const sidebar = ref(null);
+
 </script>
 
 <template>
@@ -2095,8 +2093,6 @@ const sidebar = ref(null);
   </div>
  
 </div>
-
-<!-- <div class="fixed inset-0 z-10 hidden bg-gray-900/50 dark:bg-gray-900/90" id="sidebarBackdrop"></div>
-  </div> --></template>
+</template>
 
 <style scoped></style>

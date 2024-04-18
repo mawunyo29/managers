@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 
-const {data, error, isValidating} = useFetch('/api/users')
+const {data, error} = useFetch('/api/users')
 definePageMeta({
     layout: 'auth',
     middleware: 'auth',
@@ -11,10 +11,9 @@ definePageMeta({
 const route = useRoute()
 useHead({
     title: 'Users',
-    name: route.params.slug,
     meta: [
         {
-            name: route.params.slug,
+            name: route.params.slug.toString(),
             content: 'Users'
         }
     ]
@@ -26,7 +25,7 @@ useHead({
    {{ $route.params.slug }}
    {{ data }}
    {{ error }}
-   {{ isValidating }}
+   
    {{ route.name }}
   </div>
 </template>

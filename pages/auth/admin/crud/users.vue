@@ -5,12 +5,62 @@ definePageMeta({
   name: "users-list",
   layout: "auth",
   alias: "/users",
-  middleware: ["auth"],
-  loading: true
+  middleware: 'auth',
+  loading: true,
+  pageTransition: {
+    name: 'fade',
+    mode: 'out-in',
+    onBeforeEnter: (el) => {
+      console.log('Before enter...')
+    },
+    onEnter: (el, done) => {
+      console.log('Enter...')
+      done()
+    },
+    onAfterEnter: (el) => {}
+  }
 });
+const loading = ref(false);
+const search = ref('');
+const querySearch =reactive({
+  search: search.value
+})
+const searchQuery = (query) => {
+  querySearch.search = query;
+  refresh();
+}
+
+const userConnet = useAuthStore();
+  
+const { data:users, error ,pending, refresh} = await userConnet.fetchUsers(querySearch);
+const tableData = computed({
+  get: () => users.value,
+  set: (value) => {
+    users.value = value;
+  },
+});
+
+const filterUsers = computed(() => {
+  //recher de mot clé dans la liste des utilisateurs ceci se fait le query sql like
+ if(!search.value){
+   return users.value.data;
+ }
+  return users.value.data.filter((user) => {
+    return Object.values(user).some((value) => {
+      return String(value).toLowerCase().includes(search.value.toLowerCase());
+    });
+  });
+
+});
+
+
+
+
 </script>
 <template>
   <div>
+    {{ search }}
+   <base-input :search-data="search" @update:search-data="searchQuery" />
     <div
       class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 dark:bg-gray-800 dark:border-gray-700">
       <div class="w-full mb-1">
@@ -140,10 +190,10 @@ definePageMeta({
                     Name
                   </th>
                   <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                    Biography
+                    Username
                   </th>
                   <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                    Position
+                    Email
                   </th>
                   <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
                     Country
@@ -158,25 +208,27 @@ definePageMeta({
               </thead>
               <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
 
-                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700" v-for="(user , index)  in filterUsers" :key="index">
                   <td class="w-4 p-4">
                     <div class="flex items-center">
-                      <input id="checkbox-{{ .id }}" aria-describedby="checkbox-1" type="checkbox"
+                      <input id="checkbox-{{ .index }}" aria-describedby="checkbox-1" type="checkbox"
                         class="w-4 h-4 border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600">
-                      <label for="checkbox-{{ .id }}" class="sr-only">checkbox</label>
+                      <label for="checkbox-{{ .index }}" class="sr-only">checkbox</label>
                     </div>
                   </td>
                   <td class="flex items-center p-4 mr-12 space-x-6 whitespace-nowrap">
                     <!-- <img class="w-10 h-10 rounded-full" src="/images/users/{{ .avatar }}" alt=" avatar"> -->
                     <div class="text-sm font-normal text-gray-500 dark:text-gray-400">
-                      <div class="text-base font-semibold text-gray-900 dark:text-white"></div>
+                      <div class="text-base font-semibold text-gray-900 dark:text-white">{{ user.name}}</div>
                       <div class="text-sm font-normal text-gray-500 dark:text-gray-400"></div>
                     </div>
                   </td>
                   <td
                     class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate xl:max-w-xs dark:text-gray-400">
+                    {{ user.username}}
                   </td>
                   <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                    {{ user.email}}
                   </td>
                   <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
                   </td>
@@ -186,7 +238,7 @@ definePageMeta({
                       <div class="h-2.5 w-2.5 rounded-full bg-red-500 mr-2"></div>
                     </div>
                   </td>
-                  <td class="p-4 space-x-2 whitespace-nowrap">
+                  <td class="p-4 space-x-2 whitespace-nowrap w-5">
                     <button type="button" data-modal-target="edit-user-modal" data-modal-toggle="edit-user-modal"
                       class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
                       <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"

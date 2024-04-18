@@ -1,4 +1,4 @@
-/* @tailwind base;
+ @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -174,4 +174,31 @@
   .feed-container {
     height: calc(100vh - 4rem);
   }
-} */
+} 
+.primary {
+  color: #f3c614;
+}
+.secondary {
+  color: theme('colors.gray.500');
+}
+.tertiary {
+  color: theme('colors.slate.800');
+}
+.quaternary {
+  color: #ed64a6;
+}
+.quinary {
+  color: #ed8936;
+}
+.danger {
+  color: #e3342f;
+}
+.success {
+  color: #38c172;
+}
+.info {
+  color: theme('colors.blue.500');
+}
+.warning {
+  color: #f6993f;
+}

@@ -9,7 +9,9 @@ definePageMeta({
   site_name: 'Example Site',
   alias: '/admin/settings',
   middleware: ['auth'],
-  layout: 'auth'
+  layout: 'auth',
+  keywords: 'settings, user, profile',
+  name: 'Settings',
 
 })
 </script>

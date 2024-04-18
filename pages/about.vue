@@ -1,4 +1,13 @@
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+definePageMeta({
+  title: "About",
+  name: "About",
+  alias: "/about",
+  layout: "guest",
+  middleware: "guest",
+
+});
+</script>
 
 <template>
   <div>

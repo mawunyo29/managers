@@ -1,5 +1,5 @@
 <script  setup>
-import CryptoJS from "crypto-js";
+
 
 definePageMeta({
   title: "Pages",
@@ -28,7 +28,7 @@ const icons = ref({
 const menus = ref([]);
 const form = ref({});
 const isOpen = ref({ drawerCreateProduct: false, drawerUpdateProduct: false, drawerDeleteProduct: false, openAddMenu: false });
-const appConfig = useRuntimeConfig().public
+// const appConfig = useRuntimeConfig().public
 const openDrawer = (name) => {
   name === name ? name : -1;
   isOpen.value[name] = !isOpen.value[name];
@@ -52,15 +52,16 @@ const addMenu = async () => {
     await getMenus();
   }
 };
-
+const { data:menusData, error ,execute } = await useApiFetch("/api/menus");
 const getMenus = async () => {
-  const { data, error } = await useApiFetch("/api/menus");
-  if (data) {
-    console.log(data.value);
-    const appKey = appConfig.appKey;
+ 
+  if (menusData.value) {
+    console.log(menusData.value);
+    // const appKey = appConfig.appKey;
     try {
       
-      menus.value = data.value;
+      menus.value = menusData.value;
+      await execute()
 
     } catch (error) {
       console.error("Erreur lors du décryptage des données :", error);
@@ -70,7 +71,7 @@ const getMenus = async () => {
 
 
 onMounted(async () => {
-  await getMenus();
+ 
 });
 
 </script>
@@ -187,7 +188,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div class="flex flex-col" v-if="menus.length > 0">
+    <div class="flex flex-col" v-if="menus && menus?.length >0 ">
       <div class="overflow-x-auto">
         <div class="inline-block min-w-full align-middle">
           <div class="overflow-hidden shadow">
@@ -233,9 +234,9 @@ onMounted(async () => {
                 <tr class="hover:bg-gray-100 dark:hover:bg-gray-700" v-for="(menu, index) in menus" :key="menu.id">
                   <td class="w-4 p-4">
                     <div class="flex items-center">
-                      <input id="checkbox-{{ .id }}" aria-describedby="checkbox-1" type="checkbox"
+                      <input id="checkbox-{{ .index }}" aria-describedby="checkbox-1" type="checkbox"
                         class="w-4 h-4 border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600">
-                      <label for="checkbox-{{ .id }}" class="sr-only">checkbox</label>
+                      <label for="checkbox-{{ .index }}" class="sr-only">checkbox</label>
                     </div>
                   </td>
                   <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ menu.id }}</td>
@@ -289,7 +290,7 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-
+    
     <div v-if="menus.length > 0"
       class="sticky bottom-0 right-0 items-center w-full p-4 bg-white border-t border-gray-200 sm:flex sm:justify-between dark:bg-gray-800 dark:border-gray-700">
       <div class="flex items-center mb-4 sm:mb-0">

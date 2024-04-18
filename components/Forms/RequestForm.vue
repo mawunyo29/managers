@@ -41,17 +41,15 @@ const scopeInputType = (type) => {
   }
   return false;
 };
-onMounted(() => {
-  console.log(input.value.resetFields());
 
-})
+
 </script>
 
 <template>
-  <UContainer class="flex flex-col items-center justify-center px-6 pt-8 mx-auto md:h-screen pt:mt-0 dark:bg-gray-900 h-full">
+  <UContainer  class="flex flex-col items-center justify-center px-6 pt-8 mx-auto sm:-ml-4 md:h-screen pt:mt-0 dark:bg-gray-900">
     <div
       class=" sm:px-6 px-4 md:py-12 py-9 2xl:mx-auto  w-full md:flex items-center justify-start">
-      <el-card class="sm:w-1/3 w-full my-10 " shadow="hover">
+      <el-card class="w-full max-w-xl p-6 space-y-8 bg-white rounded-lg shadow sm:p-8 dark:bg-gray-800" shadow="hover">
         <div class="card-header text-center text-xl font-medium mb-4">
           <span>{{ title }}</span>
         </div>
@@ -79,8 +77,8 @@ onMounted(() => {
         <template #footer>
           <div class="flex justify-end">
             <div>
-              <el-button type="primary" @click.prevent="submit">Submit</el-button>
-              <el-button @click="reset">Reset</el-button>
+              <base-button type="submit" @click.prevent="submit" label="Submit" color="primary" size="sm" rounded="" classes=""/>
+              <base-button type="reset" @click="reset" label="Reset" color="secondary" size="sm" rounded="" classes=""/>
             </div>
           </div>
         </template>

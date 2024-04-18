@@ -1,52 +1,74 @@
 type User = {
-    id: number
-    name: string
-    email: string
-}
-type token = {
-    token: string
-}
+  id: number;
+  name: string;
+  email: string;
+  token: string;
+};
+type Token = {
+  token: string;
+};
 
-export const useAuthStore = defineStore('authConnect', () => {
-    const user =  ref<User | null>(null)
-    const token = ref<token | null>(null)
-    const isAuthentificated = computed(() => {
-        return !!user.value
-    })
-    const authToken = computed(() => {
-        return token.value
-    })
-    const { authentificate, options} = useAuth()
-    const { scrfToken, getScrfToken } = useScrfToken()
-    const fetchUser = async () => {
-       const {data} = await useApiFetch('/api/user')
-       user.value = data.value as User
-    }
-    const authentificateHandler = async (requestData: any) => {
-        getScrfToken("/sanctum/csrf-cookie")
-        const cookie = scrfToken('XSRF-TOKEN')
-        options.value = {
-            headers: {
-                Accept: "application/json",
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-XSRF-TOKEN': cookie
-            }
-        }
+type Credentials = {
+  email: string;
+  password: string;
+};
+
+export const useAuthStore = defineStore("auth", () => {
+  const user = ref<User | null>(null);
+  const token = ref<Token | null>(null);
+  const isAuthenticated = computed(() => {
+    return !!user.value;
+  });
+  const authToken = computed(() => {
+    return token.value;
+  });
+  useState("user", () => user.value);
+  const fetchUser = async () => {
+    const response = await useApiFetch("/api/user", { method: "GET" });
+    user.value = response?.data.value as User;
+    console.log("user", user.value);
+    
+  };
+  const authentificateHandler: (credentials: Credentials) => Promise<any> = async (credentials: Credentials) => {
+    await useApiFetch("/sanctum/csrf-cookie");
+    const login = await useApiFetch(`/api/login`, {
+      method: "POST",
+      body: credentials,
+    });
+    // const { data, status } = await authentificate(`/api/login`, formData)
+    await fetchUser();
+
+    return login;
+  };
+  const handleLogout = async () => {
+    await useApiFetch("/api/logout", { method: "POST" });
+    user.value = null;
+    token.value = null;
+  };
+  const users = ref<User[]>([]);
+  const fetchUsers = async (query: any) => {
+    const response = await useApiFetch("/api/users", {
+      method: "GET",
+      query: query,
+    });
+    return response;
+  };
+
+ 
+  return {
+    user,
+    authentificateHandler,
+    isAuthenticated,
+    fetchUser,
+    authToken,
+    handleLogout,
+    users,
+    fetchUsers,
    
-       const login = await authentificate(`/api/login`, requestData)
-       const $vallue = login.data.value as any
-         token.value = $vallue?.token as token
-        await fetchUser()
-        
-       return login
-       
-
-    }
-    return {
-        user,
-        authentificateHandler,
-        isAuthentificated,
-        fetchUser,
-        authToken
-    }
-})
+  };
+});
+if ((import.meta as any).hot) {
+  (import.meta as any).hot.accept(
+    acceptHMRUpdate(useAuthStore, (import.meta as any).hot)
+  );
+}
