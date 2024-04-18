@@ -53,7 +53,7 @@ const getBadges =(dataStore) => {
 
 <template>
   <div>
-    <pre>{{ badges }}</pre>
+   
     <div
       class="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8 dark:bg-gray-800 sm:w-1/3 w-full"
     >
